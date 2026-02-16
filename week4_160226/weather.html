@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real Weather App (No API Key)</title>
+</head>
+<body>
+
+<h2>🌍 Real Weather App</h2>
+<input type="text" id="city" placeholder="Enter City">
+<button onclick="getWeather()">Get Weather</button>
+
+<p id="result"></p>
+
+<script>
+
+async function getWeather() {
+    let city = document.getElementById("city").value.trim();
+
+    if (city === "") {
+        document.getElementById("result").innerHTML = "Enter city name!";
+        return;
+    }
+
+    try {
+        // Step 1: Get latitude & longitude from city name
+        let geoResponse = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${city}`
+        );
+        let geoData = await geoResponse.json();
+
+        if (!geoData.results) {
+            document.getElementById("result").innerHTML = "City not found!";
+            return;
+        }
+
+        let lat = geoData.results[0].latitude;
+        let lon = geoData.results[0].longitude;
+
+        // Step 2: Get weather using coordinates
+        let weatherResponse = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+        );
+        let weatherData = await weatherResponse.json();
+
+        let temp = weatherData.current_weather.temperature;
+        let wind = weatherData.current_weather.windspeed;
+
+        document.getElementById("result").innerHTML =
+            `📍 ${city}<br>
+             🌡 Temperature: ${temp}°C<br>
+             💨 Wind Speed: ${wind} km/h`;
+
+    } catch (error) {
+        document.getElementById("result").innerHTML = "Something went wrong!";
+    }
+}
+
+</script>
+
+
+</body>
+</html>

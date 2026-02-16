@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shopping Cart</title>
+</head>
+<body>
+
+<h2>Shopping Cart</h2>
+<button onclick="addItem('Shirt', 500)">Add Shirt (500)</button>
+<button onclick="addItem('Shoes', 1000)">Add Shoes (1000)</button>
+<button onclick="addItem('Bag', 800)">Add Bag (800)</button>
+
+<h3>Cart Items:</h3>
+<ul id="cartList"></ul>
+<p id="total"></p>
+
+<script>
+class Item {
+    constructor(name, price) {
+        this.name = name;
+        this.price = price;
+    }
+}
+
+let cart = [];
+
+function addItem(name, price) {
+    let item = new Item(name, price);
+    cart.push(item);
+    displayCart();
+}
+
+function displayCart() {
+    let list = document.getElementById("cartList");
+    list.innerHTML = "";
+    let total = 0;
+
+    for (let i = 0; i < cart.length; i++) {
+        let li = document.createElement("li");
+        li.textContent = cart[i].name + " - " + cart[i].price;
+        list.appendChild(li);
+        total += cart[i].price;
+    }
+
+    document.getElementById("total").innerHTML = "Total: " + total;
+}
+</script>
+
+</body>
+</html>

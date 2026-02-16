@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple To-Do App</title>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 5px; }
+        button { margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>📝 To-Do List</h2>
+
+    <input type="text" id="taskInput" placeholder="Enter task">
+    <button id="addBtn">Add Task</button>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        // Class
+        class Task {
+            constructor(name) {
+                this.name = name;
+                this.completed = false;
+            }
+
+            toggleStatus() {
+                this.completed = !this.completed; // operator
+            }
+        }
+
+        // Array to store tasks (variable)
+        let tasks = [];
+
+        // Function to display tasks
+        function displayTasks() {
+            let list = document.getElementById("taskList");
+            list.innerHTML = "";
+
+            // Loop
+            for (let i = 0; i < tasks.length; i++) {
+                let li = document.createElement("li");
+
+                // Condition
+                if (tasks[i].completed) {
+                    li.style.textDecoration = "line-through";
+                }
+
+                li.textContent = tasks[i].name;
+
+                // Complete button
+                let completeBtn = document.createElement("button");
+                completeBtn.textContent = "✔";
+                completeBtn.onclick = function() {
+                    tasks[i].toggleStatus();
+                    displayTasks();
+                };
+
+                // Delete button
+                let deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "❌";
+                deleteBtn.onclick = function() {
+                    tasks.splice(i, 1); // remove task
+                    displayTasks();
+                };
+
+                li.appendChild(completeBtn);
+                li.appendChild(deleteBtn);
+                list.appendChild(li);
+            }
+        }
+
+        // Event
+        document.getElementById("addBtn").addEventListener("click", function() {
+            let input = document.getElementById("taskInput").value;
+
+            // Condition
+            if (input !== "") {
+                let newTask = new Task(input); // object
+                tasks.push(newTask);
+                displayTasks();
+                document.getElementById("taskInput").value = "";
+            } else {
+                alert("Please enter a task!");
+            }
+        });
+
+    </script>
+
+</body>
+</html>

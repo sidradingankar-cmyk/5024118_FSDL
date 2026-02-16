@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator</title>
+</head>
+<body>
+
+<h2>Calculator</h2>
+<input type="number" id="num1" placeholder="First number">
+<input type="number" id="num2" placeholder="Second number">
+<button onclick="calculate()">Calculate</button>
+
+<p id="calcResult"></p>
+
+<script>
+function calculate() {
+    let n1 = parseFloat(document.getElementById("num1").value);
+    let n2 = parseFloat(document.getElementById("num2").value);
+
+    if (isNaN(n1) || isNaN(n2)) {
+        document.getElementById("calcResult").innerHTML = "Enter valid numbers!";
+        return;
+    }
+
+    let sum = n1 + n2;
+    let sub = n1 - n2;
+    let mul = n1 * n2;
+    let div = n2 !== 0 ? n1 / n2 : "Cannot divide by zero";
+
+    document.getElementById("calcResult").innerHTML =
+        "Sum: " + sum + "<br>" +
+        "Subtraction: " + sub + "<br>" +
+        "Multiplication: " + mul + "<br>" +
+        "Division: " + div;
+}
+</script>
+
+</body>
+</html>
