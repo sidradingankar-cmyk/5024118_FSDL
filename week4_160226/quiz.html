@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Smart Quiz Platform</title>
+  <title>Smart Quiz Platform + Admin Panel</title>
 
   <style>
     body {
@@ -19,8 +19,9 @@
       background:white;
       border-radius:12px;
       padding:25px;
-      width:800px;
+      width:820px;
       box-shadow:0 15px 40px rgba(0,0,0,0.3);
+      margin-bottom:20px;
     }
 
     button {
@@ -37,6 +38,8 @@
       padding:7px;
       border-radius:6px;
       border:1px solid #ccc;
+      margin:4px 0;
+      width:100%;
     }
 
     .progress {
@@ -53,6 +56,13 @@
       background:#22c55e;
     }
 
+    .admin-box{
+      background:#f8fafc;
+      border:2px dashed #6366f1;
+      padding:15px;
+      border-radius:10px;
+    }
+
     .correct { color:green; font-weight:bold; }
     .wrong { color:red; font-weight:bold; }
   </style>
@@ -63,10 +73,13 @@
 <h1>🧠 Smart Online Quiz</h1>
 <button onclick="toggleDark()">🌙 Dark Mode</button>
 
+<!-- QUIZ PANEL -->
 <div class="box">
 
+<h2>Start Quiz</h2>
+
 <label>Name:</label>
-<input type="text" id="username"><br><br>
+<input type="text" id="username">
 
 <label>Topic:</label>
 <select id="topic">
@@ -76,13 +89,13 @@
   <option value="gk">General Knowledge</option>
   <option value="computer">Computer Fundamentals</option>
   <option value="mixed">Mixed</option>
-</select><br><br>
+</select>
 
 <label>No. of Questions:</label>
-<input type="number" id="numQ" value="5"><br><br>
+<input type="number" id="numQ" value="5">
 
 <label>Timer per Question:</label>
-<input type="number" id="timerInput" value="15"><br><br>
+<input type="number" id="timerInput" value="15">
 
 <button onclick="startQuiz()">Start Quiz</button>
 
@@ -98,203 +111,212 @@
 
 </div>
 
+<!-- ADMIN PANEL -->
+<div class="box admin-box">
+
+<h2>👨‍💼 Admin Panel — Add Question</h2>
+
+<label>Select Topic:</label>
+<select id="adminTopic">
+  <option value="js">JavaScript</option>
+  <option value="html">HTML</option>
+  <option value="css">CSS</option>
+  <option value="gk">General Knowledge</option>
+  <option value="computer">Computer Fundamentals</option>
+</select>
+
+<label>Question:</label>
+<input type="text" id="adminQuestion">
+
+<label>Option 1:</label>
+<input type="text" id="opt1">
+
+<label>Option 2:</label>
+<input type="text" id="opt2">
+
+<label>Option 3:</label>
+<input type="text" id="opt3">
+
+<label>Option 4:</label>
+<input type="text" id="opt4">
+
+<label>Correct Answer:</label>
+<input type="text" id="adminAnswer">
+
+<button onclick="addQuestion()">Add Question</button>
+
+<p id="adminMsg"></p>
+
+</div>
+
 <script>
 
 /* DARK MODE */
 function toggleDark(){
-  document.body.classList.toggle("dark");
+document.body.classList.toggle("dark");
 }
 
-/* QUESTION BANK */
-const questions = {
-
+/* DEFAULT QUESTIONS */
+let questions = {
 js:[
-{q:"JavaScript is used for?",options:["Styling","Programming","Database","Server"],ans:"Programming"},
-{q:"DOM stands for?",options:["Document Object Model","None","Data","Design"],ans:"Document Object Model"},
-{q:"JS runs in?",options:["Browser","CPU","Printer","Monitor"],ans:"Browser"}
+{q:"JavaScript is used for?",options:["Styling","Programming","Database","Server"],ans:"Programming"}
 ],
-
 html:[
-{q:"HTML stands for?",options:["Hyper Text Markup Language","Home Tool","None","Data"],ans:"Hyper Text Markup Language"},
-{q:"Image tag?",options:["img","pic","src","image"],ans:"img"}
+{q:"HTML stands for?",options:["Hyper Text Markup Language","None","Data","Home"],ans:"Hyper Text Markup Language"}
 ],
-
-css:[
-{q:"CSS stands for?",options:["Cascading Style Sheets","Color Style","Creative Style","None"],ans:"Cascading Style Sheets"},
-{q:"Flexbox used for?",options:["Layout","Text","Font","Color"],ans:"Layout"}
-],
-
-gk:[
-{q:"Capital of India?",options:["Delhi","Mumbai","Kolkata","Chennai"],ans:"Delhi"},
-{q:"Largest planet?",options:["Jupiter","Earth","Mars","Saturn"],ans:"Jupiter"}
-],
-
-computer:[
-{q:"CPU stands for?",options:["Central Processing Unit","Control Unit","Computer Power","None"],ans:"Central Processing Unit"},
-{q:"RAM stands for?",options:["Random Access Memory","Read Memory","Run Memory","None"],ans:"Random Access Memory"}
-]
-
+css:[],
+gk:[],
+computer:[]
 };
 
-let selectedQuestions = [];
-let index = 0;
-let correct = 0;
-let wrong = 0;
-let skipped = 0;
-let timer;
-let timeLeft = 0;
-const NEGATIVE = 0.25;
+/* LOAD ADMIN QUESTIONS FROM STORAGE */
+function loadStoredQuestions(){
+let stored = JSON.parse(localStorage.getItem("adminQuestions"));
+if(stored){
+for(let topic in stored){
+questions[topic] = questions[topic].concat(stored[topic]);
+}
+}
+}
+loadStoredQuestions();
+
+/* ADMIN ADD QUESTION */
+function addQuestion(){
+
+let topic = adminTopic.value;
+let q = adminQuestion.value;
+let o1 = opt1.value;
+let o2 = opt2.value;
+let o3 = opt3.value;
+let o4 = opt4.value;
+let ans = adminAnswer.value;
+
+if(!q || !o1 || !o2 || !o3 || !o4 || !ans){
+adminMsg.innerHTML="Fill all fields!";
+return;
+}
+
+let newQ = {q:q, options:[o1,o2,o3,o4], ans:ans};
+
+questions[topic].push(newQ);
+
+/* SAVE TO LOCAL STORAGE */
+let stored = JSON.parse(localStorage.getItem("adminQuestions")) || {};
+stored[topic] = stored[topic] || [];
+stored[topic].push(newQ);
+localStorage.setItem("adminQuestions",JSON.stringify(stored));
+
+adminMsg.innerHTML="Question added successfully!";
+}
+
+/* QUIZ VARIABLES */
+let selectedQuestions=[],index=0,correct=0,wrong=0,skipped=0,timer,timeLeft;
+const NEGATIVE=.25;
 
 /* START QUIZ */
 function startQuiz(){
 
-  let name = document.getElementById("username").value;
-  if(name===""){ alert("Enter your name"); return; }
+if(username.value===""){alert("Enter your name");return;}
 
-  let num = parseInt(document.getElementById("numQ").value);
+let num=parseInt(numQ.value);
 
-  let topicValue = document.getElementById("topic").value;
+let pool;
 
-  let pool;
+if(topic.value==="mixed"){
+pool=[...questions.js,...questions.html,...questions.css,...questions.gk,...questions.computer];
+}else{
+pool=[...questions[topic.value]];
+}
 
-  if(topicValue==="mixed"){
-    pool = [
-      ...questions.js,
-      ...questions.html,
-      ...questions.css,
-      ...questions.gk,
-      ...questions.computer
-    ];
-  } else {
-    pool = [...questions[topicValue]];
-  }
+pool.sort(()=>Math.random()-0.5);
+selectedQuestions=pool.slice(0,num);
 
-  pool.sort(()=>Math.random()-0.5);
-  selectedQuestions = pool.slice(0,num);
+index=0;correct=0;wrong=0;skipped=0;
 
-  index=0;
-  correct=0;
-  wrong=0;
-  skipped=0;
-
-  showQuestion();
+showQuestion();
 }
 
 /* SHOW QUESTION */
 function showQuestion(){
 
-  clearInterval(timer);
-  document.getElementById("feedback").innerHTML="";
+clearInterval(timer);
+feedback.innerHTML="";
+updateProgress();
 
-  updateProgress();
+if(index>=selectedQuestions.length){ finishQuiz(); return;}
 
-  if(index>=selectedQuestions.length){
-    finishQuiz();
-    return;
-  }
+let q=selectedQuestions[index];
 
-  let q = selectedQuestions[index];
+quizArea.innerHTML=
+`<h3>${index+1}. ${q.q}</h3>
+${q.options.map(o=>`<div><input type="radio" name="ans" value="${o}"> ${o}</div>`).join("")}
+<button onclick="checkAnswer()">Submit</button>`;
 
-  let html = `<h3>${index+1}. ${q.q}</h3>`;
-
-  q.options.forEach(opt=>{
-    html += `<div><input type="radio" name="ans" value="${opt}"> ${opt}</div>`;
-  });
-
-  html += `<button onclick="checkAnswer()">Submit</button>`;
-
-  document.getElementById("quizArea").innerHTML = html;
-
-  startTimer();
+startTimer();
 }
 
 /* TIMER */
 function startTimer(){
-  timeLeft = parseInt(document.getElementById("timerInput").value);
-  document.getElementById("time").innerText = timeLeft;
+timeLeft=parseInt(timerInput.value);
+time.innerText=timeLeft;
 
-  timer = setInterval(()=>{
-    timeLeft--;
-    document.getElementById("time").innerText = timeLeft;
-
-    if(timeLeft<=0){
-      clearInterval(timer);
-      skipped++;
-      index++;
-      showQuestion();
-    }
-  },1000);
+timer=setInterval(()=>{
+timeLeft--;
+time.innerText=timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+skipped++; index++; showQuestion();
+}
+},1000);
 }
 
 /* CHECK ANSWER */
 function checkAnswer(){
 
-  clearInterval(timer);
+clearInterval(timer);
 
-  let sel = document.querySelector('input[name="ans"]:checked');
-  if(!sel){ alert("Select an answer"); return; }
+let sel=document.querySelector('input[name="ans"]:checked');
+if(!sel){alert("Select answer");return;}
 
-  let selectedValue = sel.value.trim().toLowerCase();
-  let correctValue = selectedQuestions[index].ans.trim().toLowerCase();
+let selectedValue=sel.value.trim().toLowerCase();
+let correctValue=selectedQuestions[index].ans.trim().toLowerCase();
 
-  if(selectedValue===correctValue){
-    correct++;
-    document.getElementById("feedback").innerHTML="<span class='correct'>Correct</span>";
-  } else {
-    wrong++;
-    document.getElementById("feedback").innerHTML="<span class='wrong'>Wrong</span>";
-  }
+if(selectedValue===correctValue){
+correct++;
+feedback.innerHTML="<span class='correct'>Correct</span>";
+}else{
+wrong++;
+feedback.innerHTML="<span class='wrong'>Wrong</span>";
+}
 
-  index++;
-  setTimeout(showQuestion,600);
+index++;
+setTimeout(showQuestion,600);
 }
 
 /* PROGRESS */
 function updateProgress(){
-  document.getElementById("progressBar").style.width =
-    (index/selectedQuestions.length)*100 + "%";
+progressBar.style.width=(index/selectedQuestions.length)*100+"%";
 }
 
 /* FINISH QUIZ */
 function finishQuiz(){
 
-  document.getElementById("quizArea").innerHTML="";
-  document.getElementById("time").innerText="0";
+quizArea.innerHTML="";
+time.innerText="0";
 
-  let score = correct - (wrong * NEGATIVE);
-  if(score<0) score=0;
+let score=correct-(wrong*NEGATIVE);
+if(score<0)score=0;
 
-  let accuracy = ((correct/selectedQuestions.length)*100).toFixed(1);
+let accuracy=((correct/selectedQuestions.length)*100).toFixed(1);
 
-  document.getElementById("result").innerHTML =
-    `<h2>Result</h2>
-    Correct: ${correct}<br>
-    Wrong: ${wrong}<br>
-    Skipped: ${skipped}<br>
-    Score: ${score}<br>
-    Accuracy: ${accuracy}%<br><br>
-    <button onclick="downloadCert()">Download Certificate</button>
-    <button onclick="location.reload()">Restart</button>`;
-}
-
-/* CERTIFICATE */
-function downloadCert(){
-
-  let today=new Date().toLocaleDateString();
-  let certID="QUIZ-"+Math.floor(Math.random()*1000000);
-
-  let w=window.open("","","width=900,height=700");
-
-  w.document.write(`
-    <h1>Certificate of Achievement</h1>
-    <p>This certifies that <b>${document.getElementById("username").value}</b></p>
-    <p>has completed the Smart Quiz</p>
-    <p>Score: ${correct}</p>
-    <p>Date: ${today}</p>
-    <p>Certificate ID: ${certID}</p>
-  `);
-
-  w.print();
+result.innerHTML=
+`<h2>Result</h2>
+Correct: ${correct}<br>
+Wrong: ${wrong}<br>
+Skipped: ${skipped}<br>
+Score: ${score}<br>
+Accuracy: ${accuracy}%<br>
+<button onclick="location.reload()">Restart</button>`;
 }
 
 </script>
