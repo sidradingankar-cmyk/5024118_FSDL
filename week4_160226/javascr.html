@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Example</title>
+</head>
+<body>
+
+    <h2>JavaScript Demo</h2>
+    <button id="btn">Run Code</button>
+    <p id="result"></p>
+
+    <script>
+        // Variables
+        let a = 15;
+        let b = 5;
+
+        // Operators
+        let sum = a + b;
+        let difference = a - b;
+
+        // Object
+        let car = {
+            brand: "Toyota",
+            model: "Corolla",
+            getInfo: function() {
+                return this.brand + " " + this.model;
+            }
+        };
+
+        // Class
+        class Person {
+            constructor(name, age) {
+                this.name = name;
+                this.age = age;
+            }
+
+            introduce() {
+                return "Hi, I am " + this.name + " and I am " + this.age + " years old.";
+            }
+        }
+
+        let person1 = new Person("Alice", 25);
+
+        // Function
+        function checkValue(num) {
+            if (num > 10) {
+                return "Greater than 10";
+            } else {
+                return "10 or less";
+            }
+        }
+
+        // Event
+        document.getElementById("btn").addEventListener("click", function() {
+
+            let output = "";
+            output += "Sum: " + sum + "<br>";
+            output += "Difference: " + difference + "<br>";
+            output += checkValue(sum) + "<br>";
+
+            // Loop
+            output += "Counting: ";
+            for (let i = 1; i <= 5; i++) {
+                output += i + " ";
+            }
+
+            output += "<br>Car: " + car.getInfo();
+            output += "<br>" + person1.introduce();
+
+            document.getElementById("result").innerHTML = output;
+        });
+    </script>
+
+</body>
+</html>
