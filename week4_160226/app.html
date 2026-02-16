@@ -1,93 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple To-Do App</title>
+    <title>Advanced To-Do List</title>
     <style>
-        body { font-family: Arial; text-align: center; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin: 5px; }
-        button { margin-left: 5px; }
+        body {
+            font-family: Arial;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+        }
+        li {
+            margin: 5px 0;
+            text-align: left;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+        .category {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <h2>📝 To-Do List</h2>
+<h2>📝 To-Do List with Categories</h2>
 
-    <input type="text" id="taskInput" placeholder="Enter task">
-    <button id="addBtn">Add Task</button>
+<input type="text" id="taskInput" placeholder="Enter Task">
+<select id="category">
+    <option value="Work">Work</option>
+    <option value="Home">Home</option>
+    <option value="Study">Study</option>
+</select>
+<button onclick="addTask()">Add Task</button>
 
-    <ul id="taskList"></ul>
+<ul id="taskList"></ul>
 
-    <script>
-        // Class
-        class Task {
-            constructor(name) {
-                this.name = name;
-                this.completed = false;
-            }
+<script>
+// Class for Task
+class Task {
+    constructor(name, category) {
+        this.name = name;
+        this.category = category;
+        this.completed = false;
+    }
 
-            toggleStatus() {
-                this.completed = !this.completed; // operator
-            }
+    toggleStatus() {
+        this.completed = !this.completed;
+    }
+}
+
+// Array to store tasks
+let tasks = [];
+
+// Function to add task
+function addTask() {
+    let taskName = document.getElementById("taskInput").value.trim();
+    let category = document.getElementById("category").value;
+
+    if (taskName === "") {
+        alert("Please enter a task!");
+        return;
+    }
+
+    let task = new Task(taskName, category);
+    tasks.push(task);
+    displayTasks();
+
+    document.getElementById("taskInput").value = "";
+}
+
+// Function to display tasks
+function displayTasks() {
+    let list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    for (let i = 0; i < tasks.length; i++) {
+        let li = document.createElement("li");
+        li.innerHTML = `<span class="category">[${tasks[i].category}]</span> ${tasks[i].name}`;
+
+        if (tasks[i].completed) {
+            li.classList.add("completed");
         }
 
-        // Array to store tasks (variable)
-        let tasks = [];
+        // Complete button
+        let completeBtn = document.createElement("button");
+        completeBtn.textContent = "✔";
+        completeBtn.onclick = function() {
+            tasks[i].toggleStatus();
+            displayTasks();
+        };
 
-        // Function to display tasks
-        function displayTasks() {
-            let list = document.getElementById("taskList");
-            list.innerHTML = "";
+        // Delete button
+        let deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "❌";
+        deleteBtn.onclick = function() {
+            tasks.splice(i, 1);
+            displayTasks();
+        };
 
-            // Loop
-            for (let i = 0; i < tasks.length; i++) {
-                let li = document.createElement("li");
-
-                // Condition
-                if (tasks[i].completed) {
-                    li.style.textDecoration = "line-through";
-                }
-
-                li.textContent = tasks[i].name;
-
-                // Complete button
-                let completeBtn = document.createElement("button");
-                completeBtn.textContent = "✔";
-                completeBtn.onclick = function() {
-                    tasks[i].toggleStatus();
-                    displayTasks();
-                };
-
-                // Delete button
-                let deleteBtn = document.createElement("button");
-                deleteBtn.textContent = "❌";
-                deleteBtn.onclick = function() {
-                    tasks.splice(i, 1); // remove task
-                    displayTasks();
-                };
-
-                li.appendChild(completeBtn);
-                li.appendChild(deleteBtn);
-                list.appendChild(li);
-            }
-        }
-
-        // Event
-        document.getElementById("addBtn").addEventListener("click", function() {
-            let input = document.getElementById("taskInput").value;
-
-            // Condition
-            if (input !== "") {
-                let newTask = new Task(input); // object
-                tasks.push(newTask);
-                displayTasks();
-                document.getElementById("taskInput").value = "";
-            } else {
-                alert("Please enter a task!");
-            }
-        });
-
-    </script>
+        li.appendChild(completeBtn);
+        li.appendChild(deleteBtn);
+        list.appendChild(li);
+    }
+}
+</script>
 
 </body>
 </html>
