@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Quiz Platform</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial;
+      background: linear-gradient(120deg,#667eea,#764ba2);
+      color: #222;
+      padding: 20px;
+    }
+
+    .dark { background:#0f172a; color:#e5e7eb; }
+
+    h1 { color:white; }
+
+    .box {
+      background:white;
+      border-radius:12px;
+      padding:25px;
+      width:800px;
+      box-shadow:0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    button {
+      background:#6366f1;
+      color:white;
+      border:none;
+      padding:10px 18px;
+      border-radius:8px;
+      cursor:pointer;
+      margin-top:8px;
+    }
+
+    input,select {
+      padding:7px;
+      border-radius:6px;
+      border:1px solid #ccc;
+    }
+
+    .progress {
+      width:100%;
+      height:16px;
+      background:#e5e7eb;
+      border-radius:10px;
+      margin:10px 0;
+    }
+
+    #progressBar {
+      height:100%;
+      width:0%;
+      background:#22c55e;
+    }
+
+    .correct { color:green; font-weight:bold; }
+    .wrong { color:red; font-weight:bold; }
+  </style>
+
+</head>
+<body>
+
+<h1>🧠 Smart Online Quiz</h1>
+<button onclick="toggleDark()">🌙 Dark Mode</button>
+
+<div class="box">
+
+<label>Name:</label>
+<input type="text" id="username"><br><br>
+
+<label>Topic:</label>
+<select id="topic">
+  <option value="js">JavaScript</option>
+  <option value="html">HTML</option>
+  <option value="css">CSS</option>
+  <option value="gk">General Knowledge</option>
+  <option value="computer">Computer Fundamentals</option>
+  <option value="mixed">Mixed</option>
+</select><br><br>
+
+<label>No. of Questions:</label>
+<input type="number" id="numQ" value="5"><br><br>
+
+<label>Timer per Question:</label>
+<input type="number" id="timerInput" value="15"><br><br>
+
+<button onclick="startQuiz()">Start Quiz</button>
+
+<hr>
+
+<p><b>Time Left:</b> <span id="time">0</span></p>
+
+<div class="progress"><div id="progressBar"></div></div>
+
+<div id="quizArea"></div>
+<p id="feedback"></p>
+<p id="result"></p>
+
+</div>
+
+<script>
+
+/* DARK MODE */
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+
+/* QUESTION BANK */
+const questions = {
+
+js:[
+{q:"JavaScript is used for?",options:["Styling","Programming","Database","Server"],ans:"Programming"},
+{q:"DOM stands for?",options:["Document Object Model","None","Data","Design"],ans:"Document Object Model"},
+{q:"JS runs in?",options:["Browser","CPU","Printer","Monitor"],ans:"Browser"}
+],
+
+html:[
+{q:"HTML stands for?",options:["Hyper Text Markup Language","Home Tool","None","Data"],ans:"Hyper Text Markup Language"},
+{q:"Image tag?",options:["img","pic","src","image"],ans:"img"}
+],
+
+css:[
+{q:"CSS stands for?",options:["Cascading Style Sheets","Color Style","Creative Style","None"],ans:"Cascading Style Sheets"},
+{q:"Flexbox used for?",options:["Layout","Text","Font","Color"],ans:"Layout"}
+],
+
+gk:[
+{q:"Capital of India?",options:["Delhi","Mumbai","Kolkata","Chennai"],ans:"Delhi"},
+{q:"Largest planet?",options:["Jupiter","Earth","Mars","Saturn"],ans:"Jupiter"}
+],
+
+computer:[
+{q:"CPU stands for?",options:["Central Processing Unit","Control Unit","Computer Power","None"],ans:"Central Processing Unit"},
+{q:"RAM stands for?",options:["Random Access Memory","Read Memory","Run Memory","None"],ans:"Random Access Memory"}
+]
+
+};
+
+let selectedQuestions = [];
+let index = 0;
+let correct = 0;
+let wrong = 0;
+let skipped = 0;
+let timer;
+let timeLeft = 0;
+const NEGATIVE = 0.25;
+
+/* START QUIZ */
+function startQuiz(){
+
+  let name = document.getElementById("username").value;
+  if(name===""){ alert("Enter your name"); return; }
+
+  let num = parseInt(document.getElementById("numQ").value);
+
+  let topicValue = document.getElementById("topic").value;
+
+  let pool;
+
+  if(topicValue==="mixed"){
+    pool = [
+      ...questions.js,
+      ...questions.html,
+      ...questions.css,
+      ...questions.gk,
+      ...questions.computer
+    ];
+  } else {
+    pool = [...questions[topicValue]];
+  }
+
+  pool.sort(()=>Math.random()-0.5);
+  selectedQuestions = pool.slice(0,num);
+
+  index=0;
+  correct=0;
+  wrong=0;
+  skipped=0;
+
+  showQuestion();
+}
+
+/* SHOW QUESTION */
+function showQuestion(){
+
+  clearInterval(timer);
+  document.getElementById("feedback").innerHTML="";
+
+  updateProgress();
+
+  if(index>=selectedQuestions.length){
+    finishQuiz();
+    return;
+  }
+
+  let q = selectedQuestions[index];
+
+  let html = `<h3>${index+1}. ${q.q}</h3>`;
+
+  q.options.forEach(opt=>{
+    html += `<div><input type="radio" name="ans" value="${opt}"> ${opt}</div>`;
+  });
+
+  html += `<button onclick="checkAnswer()">Submit</button>`;
+
+  document.getElementById("quizArea").innerHTML = html;
+
+  startTimer();
+}
+
+/* TIMER */
+function startTimer(){
+  timeLeft = parseInt(document.getElementById("timerInput").value);
+  document.getElementById("time").innerText = timeLeft;
+
+  timer = setInterval(()=>{
+    timeLeft--;
+    document.getElementById("time").innerText = timeLeft;
+
+    if(timeLeft<=0){
+      clearInterval(timer);
+      skipped++;
+      index++;
+      showQuestion();
+    }
+  },1000);
+}
+
+/* CHECK ANSWER */
+function checkAnswer(){
+
+  clearInterval(timer);
+
+  let sel = document.querySelector('input[name="ans"]:checked');
+  if(!sel){ alert("Select an answer"); return; }
+
+  let selectedValue = sel.value.trim().toLowerCase();
+  let correctValue = selectedQuestions[index].ans.trim().toLowerCase();
+
+  if(selectedValue===correctValue){
+    correct++;
+    document.getElementById("feedback").innerHTML="<span class='correct'>Correct</span>";
+  } else {
+    wrong++;
+    document.getElementById("feedback").innerHTML="<span class='wrong'>Wrong</span>";
+  }
+
+  index++;
+  setTimeout(showQuestion,600);
+}
+
+/* PROGRESS */
+function updateProgress(){
+  document.getElementById("progressBar").style.width =
+    (index/selectedQuestions.length)*100 + "%";
+}
+
+/* FINISH QUIZ */
+function finishQuiz(){
+
+  document.getElementById("quizArea").innerHTML="";
+  document.getElementById("time").innerText="0";
+
+  let score = correct - (wrong * NEGATIVE);
+  if(score<0) score=0;
+
+  let accuracy = ((correct/selectedQuestions.length)*100).toFixed(1);
+
+  document.getElementById("result").innerHTML =
+    `<h2>Result</h2>
+    Correct: ${correct}<br>
+    Wrong: ${wrong}<br>
+    Skipped: ${skipped}<br>
+    Score: ${score}<br>
+    Accuracy: ${accuracy}%<br><br>
+    <button onclick="downloadCert()">Download Certificate</button>
+    <button onclick="location.reload()">Restart</button>`;
+}
+
+/* CERTIFICATE */
+function downloadCert(){
+
+  let today=new Date().toLocaleDateString();
+  let certID="QUIZ-"+Math.floor(Math.random()*1000000);
+
+  let w=window.open("","","width=900,height=700");
+
+  w.document.write(`
+    <h1>Certificate of Achievement</h1>
+    <p>This certifies that <b>${document.getElementById("username").value}</b></p>
+    <p>has completed the Smart Quiz</p>
+    <p>Score: ${correct}</p>
+    <p>Date: ${today}</p>
+    <p>Certificate ID: ${certID}</p>
+  `);
+
+  w.print();
+}
+
+</script>
+</body>
+</html>
