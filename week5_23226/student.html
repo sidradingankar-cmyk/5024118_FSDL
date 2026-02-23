@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced Student Subject Result System</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { padding: 6px; margin: 4px 0; }
+    button { padding: 6px 12px; margin-top: 6px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    table, th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background: #4CAF50; color: white; }
+    .error { color: red; font-weight: bold; }
+  </style>
+
+</head>
+<body>
+
+<h2>Advanced Student Subject Result System</h2>
+
+<label>Name:</label><br>
+<input type="text" id="name"><br>
+
+<label>Age:</label><br>
+<input type="number" id="age"><br>
+
+<h3>Enter Subject Marks (Out of 100)</h3>
+
+<label>Math:</label><br>
+<input type="number" id="math"><br>
+
+<label>Science:</label><br>
+<input type="number" id="science"><br>
+
+<label>English:</label><br>
+<input type="number" id="english"><br>
+
+<label>Computer:</label><br>
+<input type="number" id="computer"><br>
+
+<button onclick="addStudent()">Add Student</button>
+
+<p id="message"></p>
+
+<h3>Total Students: <span id="count">0</span></h3>
+<h3>Class Average: <span id="classAvg">0</span></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Age</th>
+      <th>Total</th>
+      <th>Percentage</th>
+      <th>Grade</th>
+      <th>Result</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="studentTable"></tbody>
+</table>
+
+<script>
+
+let students = [];
+let studentId = 1;
+
+/* ADD STUDENT FUNCTION */
+function addStudent(){
+
+  let message = document.getElementById("message");
+  message.innerHTML = "";
+
+  try {
+
+    let name = document.getElementById("name").value;
+    let age = parseInt(document.getElementById("age").value);
+
+    let math = parseInt(document.getElementById("math").value);
+    let science = parseInt(document.getElementById("science").value);
+    let english = parseInt(document.getElementById("english").value);
+    let computer = parseInt(document.getElementById("computer").value);
+
+    /* VALIDATION */
+    if(!name || !age || isNaN(math) || isNaN(science) || isNaN(english) || isNaN(computer)){
+      throw new Error("All fields are required!");
+    }
+
+    if(age <= 0){
+      throw new Error("Invalid age");
+    }
+
+    let marksArray = [math, science, english, computer];
+
+    for(let m of marksArray){
+      if(m < 0 || m > 100){
+        throw new Error("Marks must be between 0 and 100");
+      }
+    }
+
+    /* TOTAL CALCULATION (ARRAY + LOOP) */
+    let total = 0;
+    for(let m of marksArray){
+      total += m;
+    }
+
+    let percentage = (total / 400 * 100).toFixed(2);
+
+    /* GRADE SYSTEM */
+    let grade;
+    if(percentage >= 90) grade = "A+";
+    else if(percentage >= 75) grade = "A";
+    else if(percentage >= 60) grade = "B";
+    else if(percentage >= 50) grade = "C";
+    else grade = "Fail";
+
+    let result = percentage >= 50 ? "Pass" : "Fail";
+
+    /* DATE & TIME */
+    let now = new Date();
+    let date = now.toDateString();
+    let time = now.toLocaleTimeString();
+
+    /* CREATE STUDENT OBJECT */
+    let student = {
+      id: studentId++,
+      name: name.toUpperCase(),
+      age,
+      total,
+      percentage,
+      grade,
+      result,
+      date,
+      time
+    };
+
+    students.push(student);
+
+    displayStudents();
+    calculateClassAverage();
+    clearFields();
+
+  }
+  catch(error){
+    message.innerHTML = "<span class='error'>" + error.message + "</span>";
+  }
+}
+
+/* DISPLAY STUDENTS */
+function displayStudents(){
+
+  let table = document.getElementById("studentTable");
+  table.innerHTML = "";
+
+  students.forEach((s, index) => {
+    table.innerHTML += `
+      <tr>
+        <td>${s.id}</td>
+        <td>${s.name}</td>
+        <td>${s.age}</td>
+        <td>${s.total}</td>
+        <td>${s.percentage}%</td>
+        <td>${s.grade}</td>
+        <td>${s.result}</td>
+        <td>${s.date}</td>
+        <td>${s.time}</td>
+        <td><button onclick="deleteStudent(${index})">Delete</button></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("count").innerText = students.length;
+}
+
+/* DELETE STUDENT */
+function deleteStudent(index){
+  students.splice(index,1);
+  displayStudents();
+  calculateClassAverage();
+}
+
+/* CLASS AVERAGE */
+function calculateClassAverage(){
+
+  if(students.length === 0){
+    document.getElementById("classAvg").innerText = 0;
+    return;
+  }
+
+  let sum = 0;
+  for(let s of students){
+    sum += parseFloat(s.percentage);
+  }
+
+  let avg = (sum / students.length).toFixed(2);
+  document.getElementById("classAvg").innerText = avg + "%";
+}
+
+/* CLEAR INPUTS */
+function clearFields(){
+  document.getElementById("name").value = "";
+  document.getElementById("age").value = "";
+  document.getElementById("math").value = "";
+  document.getElementById("science").value = "";
+  document.getElementById("english").value = "";
+  document.getElementById("computer").value = "";
+}
+
+</script>
+
+</body>
+</html>

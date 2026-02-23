@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Marketplace E-Commerce System</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, select { padding: 6px; margin: 5px 0; }
+    button { padding: 6px 12px; margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background: #673ab7; color: white; }
+    .admin { background:#f3f3f3; padding:15px; margin-top:20px; }
+  </style>
+
+</head>
+<body>
+
+<h2>Marketplace Shopping Platform</h2>
+
+<!-- SEARCH + CATEGORY -->
+<label>Search:</label>
+<input type="text" id="search" onkeyup="searchProducts()">
+
+<label>Category:</label>
+<select id="category" onchange="loadProducts()">
+  <option value="all">All</option>
+  <option value="electronics">Electronics</option>
+  <option value="fashion">Fashion</option>
+  <option value="home">Home Appliances</option>
+  <option value="books">Books</option>
+  <option value="grocery">Grocery</option>
+  <option value="accessories">Accessories</option>
+</select>
+
+<br>
+
+<select id="productSelect"></select>
+
+<br>
+
+<label>Quantity:</label>
+<input type="number" id="qty">
+
+<button onclick="addToCart()">Add to Cart</button>
+<button onclick="checkout()">Checkout</button>
+
+<h3>Total ₹ <span id="total">0</span></h3>
+
+<table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Qty</th>
+<th>Total</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="cartTable"></tbody>
+</table>
+
+<h3>Orders</h3>
+<ul id="orders"></ul>
+
+<hr>
+
+<!-- ADMIN -->
+<div class="admin">
+
+<h3>Admin Panel</h3>
+
+<input type="password" id="adminPass" placeholder="Admin password">
+<button onclick="loginAdmin()">Login</button>
+
+<div id="adminArea" style="display:none">
+
+<h4>Add Product</h4>
+
+<input type="text" id="pname" placeholder="Name">
+<input type="number" id="pprice" placeholder="Price">
+<input type="number" id="pstock" placeholder="Stock">
+
+<select id="pcategory">
+<option value="electronics">Electronics</option>
+<option value="fashion">Fashion</option>
+<option value="home">Home Appliances</option>
+<option value="books">Books</option>
+<option value="grocery">Grocery</option>
+<option value="accessories">Accessories</option>
+</select>
+
+<button onclick="addProduct()">Add Product</button>
+
+<h4>Analytics</h4>
+<p>Total Revenue ₹ <span id="revenue">0</span></p>
+<p>Total Orders <span id="orderCount">0</span></p>
+
+</div>
+
+</div>
+
+<script>
+
+/* DATABASE */
+let products = JSON.parse(localStorage.getItem("products")) || [
+
+{ name:"Laptop",price:50000,stock:5,category:"electronics",rating:4.5 },
+{ name:"Mobile",price:20000,stock:8,category:"electronics",rating:4.2 },
+{ name:"TV",price:40000,stock:3,category:"electronics",rating:4.1 },
+
+{ name:"T-shirt",price:800,stock:20,category:"fashion",rating:4.0 },
+{ name:"Jeans",price:1500,stock:12,category:"fashion",rating:4.3 },
+
+{ name:"Mixer",price:3000,stock:6,category:"home",rating:4.2 },
+{ name:"Microwave",price:7000,stock:4,category:"home",rating:4.4 },
+
+{ name:"Novel Book",price:400,stock:15,category:"books",rating:4.7 },
+{ name:"Exam Guide",price:600,stock:10,category:"books",rating:4.5 },
+
+{ name:"Rice Bag",price:1200,stock:25,category:"grocery",rating:4.6 },
+{ name:"Oil",price:1800,stock:14,category:"grocery",rating:4.3 },
+
+{ name:"Headphones",price:3000,stock:10,category:"accessories",rating:4.4 },
+{ name:"Mouse",price:800,stock:18,category:"accessories",rating:4.2 }
+
+];
+
+let cart = [];
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+let revenue = JSON.parse(localStorage.getItem("revenue")) || 0;
+
+/* LOAD PRODUCTS */
+function loadProducts(){
+
+  let cat = document.getElementById("category").value;
+  let select = document.getElementById("productSelect");
+  select.innerHTML="";
+
+  products
+    .filter(p => cat==="all" || p.category===cat)
+    .forEach(p=>{
+      select.innerHTML+=`
+        <option value="${p.name}">
+        ${p.name} ₹${p.price} | Stock:${p.stock} | ⭐${p.rating}
+        </option>`;
+    });
+}
+
+window.onload=()=>{
+  loadProducts();
+  displayOrders();
+  document.getElementById("revenue").innerText=revenue;
+  document.getElementById("orderCount").innerText=orders.length;
+}
+
+/* SEARCH */
+function searchProducts(){
+  let keyword = document.getElementById("search").value.toLowerCase();
+  let select = document.getElementById("productSelect");
+  select.innerHTML="";
+
+  products
+    .filter(p=>p.name.toLowerCase().includes(keyword))
+    .forEach(p=>{
+      select.innerHTML+=`<option>${p.name}</option>`;
+    });
+}
+
+/* ADD CART */
+function addToCart(){
+
+  let name=document.getElementById("productSelect").value;
+  let qty=parseInt(document.getElementById("qty").value);
+
+  let product=products.find(p=>p.name===name);
+
+  if(!qty || qty>product.stock) return alert("Invalid qty");
+
+  let total=product.price*qty;
+
+  cart.push({name,qty,total});
+  product.stock-=qty;
+
+  displayCart();
+}
+
+/* DISPLAY CART */
+function displayCart(){
+  let table=document.getElementById("cartTable");
+  table.innerHTML="";
+  let totalAmount=0;
+
+  cart.forEach((c,index)=>{
+    totalAmount+=c.total;
+
+    table.innerHTML+=`
+    <tr>
+    <td>${c.name}</td>
+    <td>${c.qty}</td>
+    <td>${c.total}</td>
+    <td><button onclick="removeItem(${index})">Remove</button></td>
+    </tr>`;
+  });
+
+  document.getElementById("total").innerText=totalAmount;
+}
+
+/* REMOVE */
+function removeItem(index){
+  cart.splice(index,1);
+  displayCart();
+}
+
+/* CHECKOUT */
+function checkout(){
+
+  if(cart.length===0) return alert("Cart empty");
+
+  let total=0;
+  cart.forEach(c=>total+=c.total);
+
+  revenue+=total;
+
+  let order={
+    amount:total,
+    date:new Date().toLocaleString(),
+    status:"Processing"
+  };
+
+  orders.push(order);
+
+  localStorage.setItem("orders",JSON.stringify(orders));
+  localStorage.setItem("revenue",revenue);
+  localStorage.setItem("products",JSON.stringify(products));
+
+  cart=[];
+  displayCart();
+  displayOrders();
+
+  alert("Order placed!");
+}
+
+/* DISPLAY ORDERS */
+function displayOrders(){
+  let list=document.getElementById("orders");
+  list.innerHTML="";
+  orders.forEach(o=>{
+    list.innerHTML+=`<li>₹${o.amount} | ${o.status} | ${o.date}</li>`;
+  });
+}
+
+/* ADMIN LOGIN */
+function loginAdmin(){
+  if(adminPass.value==="admin123"){
+    adminArea.style.display="block";
+  }else alert("Wrong password");
+}
+
+/* ADD PRODUCT */
+function addProduct(){
+  let name=pname.value;
+  let price=parseFloat(pprice.value);
+  let stock=parseInt(pstock.value);
+  let category=pcategory.value;
+
+  products.push({name,price,stock,category,rating:4});
+
+  localStorage.setItem("products",JSON.stringify(products));
+  loadProducts();
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced Banking System</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { padding: 6px; margin: 5px 0; }
+    button { padding: 6px 12px; margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background: #4CAF50; color: white; }
+    .error { color: red; font-weight: bold; }
+  </style>
+
+</head>
+<body>
+
+<h2>Banking Management System</h2>
+
+<label>Account Holder Name:</label>
+<input type="text" id="name"><br>
+
+<label>Initial Deposit:</label>
+<input type="number" id="deposit"><br>
+
+<button onclick="createAccount()">Create Account</button>
+
+<hr>
+
+<label>Account ID:</label>
+<input type="number" id="accId"><br>
+
+<label>Amount:</label>
+<input type="number" id="amount"><br>
+
+<button onclick="depositMoney()">Deposit</button>
+<button onclick="withdrawMoney()">Withdraw</button>
+
+<p id="message"></p>
+
+<h3>Accounts</h3>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Balance</th>
+<th>Last Transaction Date</th>
+<th>Last Transaction Time</th>
+</tr>
+</thead>
+<tbody id="accountTable"></tbody>
+</table>
+
+<script>
+
+let accounts = [];
+let accountId = 1001;
+
+/* CREATE ACCOUNT */
+function createAccount(){
+
+  try{
+    let name = document.getElementById("name").value;
+    let deposit = parseFloat(document.getElementById("deposit").value);
+
+    if(name === "" || isNaN(deposit)){
+      throw new Error("All fields required");
+    }
+
+    if(deposit < 0){
+      throw new Error("Invalid deposit amount");
+    }
+
+    let now = new Date();
+
+    let account = {
+      id: accountId++,
+      name: name.toUpperCase(),
+      balance: deposit,
+      date: now.toDateString(),
+      time: now.toLocaleTimeString()
+    };
+
+    accounts.push(account);
+    displayAccounts();
+    clearFields();
+
+  }catch(error){
+    showMessage(error.message);
+  }
+}
+
+/* DEPOSIT */
+function depositMoney(){
+  try{
+
+    let id = parseInt(document.getElementById("accId").value);
+    let amount = parseFloat(document.getElementById("amount").value);
+
+    let acc = accounts.find(a => a.id === id);
+
+    if(!acc) throw new Error("Account not found");
+
+    if(amount <= 0) throw new Error("Invalid amount");
+
+    acc.balance += amount;
+
+    let now = new Date();
+    acc.date = now.toDateString();
+    acc.time = now.toLocaleTimeString();
+
+    displayAccounts();
+
+  }catch(error){
+    showMessage(error.message);
+  }
+}
+
+/* WITHDRAW */
+function withdrawMoney(){
+  try{
+
+    let id = parseInt(document.getElementById("accId").value);
+    let amount = parseFloat(document.getElementById("amount").value);
+
+    let acc = accounts.find(a => a.id === id);
+
+    if(!acc) throw new Error("Account not found");
+
+    if(amount > acc.balance){
+      throw new Error("Insufficient balance");
+    }
+
+    acc.balance -= amount;
+
+    let now = new Date();
+    acc.date = now.toDateString();
+    acc.time = now.toLocaleTimeString();
+
+    displayAccounts();
+
+  }catch(error){
+    showMessage(error.message);
+  }
+}
+
+/* DISPLAY */
+function displayAccounts(){
+
+  let table = document.getElementById("accountTable");
+  table.innerHTML = "";
+
+  accounts.forEach(a => {
+    table.innerHTML += `
+      <tr>
+        <td>${a.id}</td>
+        <td>${a.name}</td>
+        <td>${a.balance}</td>
+        <td>${a.date}</td>
+        <td>${a.time}</td>
+      </tr>
+    `;
+  });
+}
+
+/* MESSAGE */
+function showMessage(msg){
+  document.getElementById("message").innerHTML =
+    "<span class='error'>" + msg + "</span>";
+}
+
+/* CLEAR */
+function clearFields(){
+  document.getElementById("name").value="";
+  document.getElementById("deposit").value="";
+}
+
+</script>
+</body>
+</html>

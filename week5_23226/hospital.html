@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced Hospital Appointment System</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, select { padding: 6px; margin: 5px 0; }
+    button { padding: 6px 12px; margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background: #2196F3; color: white; }
+    .error { color: red; font-weight: bold; }
+  </style>
+
+</head>
+<body>
+
+<h2>Hospital Appointment System</h2>
+
+<label>Patient Name:</label><br>
+<input type="text" id="patient"><br>
+
+<label>Age:</label><br>
+<input type="number" id="age"><br>
+
+<label>Select Doctor:</label><br>
+<select id="doctor">
+  <option value="">--Select--</option>
+  <option value="Dr. Sharma">Dr. Sharma (Cardiologist)</option>
+  <option value="Dr. Khan">Dr. Khan (Neurologist)</option>
+  <option value="Dr. Mehta">Dr. Mehta (General Physician)</option>
+</select><br>
+
+<label>Select Time Slot:</label><br>
+<select id="slot">
+  <option value="">--Select--</option>
+  <option value="10:00 AM">10:00 AM</option>
+  <option value="12:00 PM">12:00 PM</option>
+  <option value="02:00 PM">02:00 PM</option>
+  <option value="04:00 PM">04:00 PM</option>
+</select><br>
+
+<button onclick="bookAppointment()">Book Appointment</button>
+
+<p id="message"></p>
+
+<h3>Total Appointments: <span id="count">0</span></h3>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Patient</th>
+<th>Age</th>
+<th>Doctor</th>
+<th>Slot</th>
+<th>Date</th>
+<th>Time Booked</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="appointmentTable"></tbody>
+</table>
+
+<script>
+
+let appointments = [];
+let appointmentId = 1;
+
+/* BOOK APPOINTMENT */
+function bookAppointment(){
+
+  let message = document.getElementById("message");
+  message.innerHTML = "";
+
+  try {
+
+    let patient = document.getElementById("patient").value;
+    let age = parseInt(document.getElementById("age").value);
+    let doctor = document.getElementById("doctor").value;
+    let slot = document.getElementById("slot").value;
+
+    /* VALIDATION */
+    if(!patient || !age || !doctor || !slot){
+      throw new Error("All fields are required");
+    }
+
+    if(age <= 0){
+      throw new Error("Invalid age entered");
+    }
+
+    /* SLOT AVAILABILITY CHECK */
+    let alreadyBooked = appointments.find(app =>
+      app.doctor === doctor && app.slot === slot
+    );
+
+    if(alreadyBooked){
+      throw new Error("Selected slot already booked for this doctor");
+    }
+
+    /* DATE & TIME */
+    let now = new Date();
+    let date = now.toDateString();
+    let time = now.toLocaleTimeString();
+
+    /* CREATE APPOINTMENT OBJECT */
+    let appointment = {
+      id: appointmentId++,
+      patient: patient.toUpperCase(),
+      age,
+      doctor,
+      slot,
+      date,
+      time
+    };
+
+    appointments.push(appointment);
+
+    displayAppointments();
+    clearFields();
+
+  }
+  catch(error){
+    message.innerHTML =
+      "<span class='error'>" + error.message + "</span>";
+  }
+}
+
+/* DISPLAY APPOINTMENTS */
+function displayAppointments(){
+
+  let table = document.getElementById("appointmentTable");
+  table.innerHTML = "";
+
+  appointments.forEach((app, index) => {
+    table.innerHTML += `
+      <tr>
+        <td>${app.id}</td>
+        <td>${app.patient}</td>
+        <td>${app.age}</td>
+        <td>${app.doctor}</td>
+        <td>${app.slot}</td>
+        <td>${app.date}</td>
+        <td>${app.time}</td>
+        <td><button onclick="cancelAppointment(${index})">Cancel</button></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("count").innerText = appointments.length;
+}
+
+/* CANCEL APPOINTMENT */
+function cancelAppointment(index){
+  appointments.splice(index,1);
+  displayAppointments();
+}
+
+/* CLEAR INPUTS */
+function clearFields(){
+  document.getElementById("patient").value = "";
+  document.getElementById("age").value = "";
+  document.getElementById("doctor").value = "";
+  document.getElementById("slot").value = "";
+}
+
+</script>
+
+</body>
+</html>
