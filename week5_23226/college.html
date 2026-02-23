@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>College ERP System</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { padding: 6px; margin: 5px 0; }
+    button { padding: 6px 12px; margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background: #3f51b5; color: white; }
+    .error { color:red; font-weight:bold; }
+  </style>
+
+</head>
+<body>
+
+<h2>College ERP Management System</h2>
+
+<h3>Student Registration</h3>
+
+<label>Name:</label><br>
+<input type="text" id="name"><br>
+
+<label>Age:</label><br>
+<input type="number" id="age"><br>
+
+<label>Math:</label><br>
+<input type="number" id="math"><br>
+
+<label>Science:</label><br>
+<input type="number" id="science"><br>
+
+<label>English:</label><br>
+<input type="number" id="english"><br>
+
+<label>Attendance %:</label><br>
+<input type="number" id="attendance"><br>
+
+<label>Fee Paid?</label><br>
+<select id="fee">
+  <option value="Paid">Paid</option>
+  <option value="Pending">Pending</option>
+</select><br>
+
+<button onclick="addStudent()">Add Student</button>
+
+<p id="message"></p>
+
+<h3>Total Students: <span id="count">0</span></h3>
+<h3>Class Average: <span id="classAvg">0</span></h3>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Total</th>
+<th>%</th>
+<th>Grade</th>
+<th>Attendance</th>
+<th>Fee</th>
+<th>Date</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="studentTable"></tbody>
+</table>
+
+<script>
+
+let students = [];
+let idCounter = 1;
+
+/* ADD STUDENT */
+function addStudent(){
+
+  try {
+
+    let name = document.getElementById("name").value;
+    let age = parseInt(document.getElementById("age").value);
+    let math = parseInt(document.getElementById("math").value);
+    let science = parseInt(document.getElementById("science").value);
+    let english = parseInt(document.getElementById("english").value);
+    let attendance = parseInt(document.getElementById("attendance").value);
+    let fee = document.getElementById("fee").value;
+
+    if(!name || !age || isNaN(math) || isNaN(science) || isNaN(english)){
+      throw new Error("All fields required");
+    }
+
+    if(math>100 || science>100 || english>100){
+      throw new Error("Marks cannot exceed 100");
+    }
+
+    let total = math + science + english;
+    let percentage = (total/300*100).toFixed(2);
+
+    let grade;
+    if(percentage>=90) grade="A+";
+    else if(percentage>=75) grade="A";
+    else if(percentage>=60) grade="B";
+    else if(percentage>=50) grade="C";
+    else grade="Fail";
+
+    let now = new Date();
+
+    let student = {
+      id:idCounter++,
+      name:name.toUpperCase(),
+      total,
+      percentage,
+      grade,
+      attendance,
+      fee,
+      date:now.toDateString()
+    };
+
+    students.push(student);
+
+    displayStudents();
+    calculateAverage();
+    clearFields();
+
+  }
+  catch(error){
+    document.getElementById("message").innerHTML =
+      "<span class='error'>"+error.message+"</span>";
+  }
+}
+
+/* DISPLAY */
+function displayStudents(){
+
+  let table=document.getElementById("studentTable");
+  table.innerHTML="";
+
+  students.forEach((s,index)=>{
+    table.innerHTML+=`
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.total}</td>
+      <td>${s.percentage}%</td>
+      <td>${s.grade}</td>
+      <td>${s.attendance}%</td>
+      <td>${s.fee}</td>
+      <td>${s.date}</td>
+      <td><button onclick="deleteStudent(${index})">Delete</button></td>
+    </tr>`;
+  });
+
+  document.getElementById("count").innerText=students.length;
+}
+
+/* DELETE */
+function deleteStudent(index){
+  students.splice(index,1);
+  displayStudents();
+  calculateAverage();
+}
+
+/* CLASS AVERAGE */
+function calculateAverage(){
+
+  if(students.length===0){
+    document.getElementById("classAvg").innerText=0;
+    return;
+  }
+
+  let sum=0;
+  students.forEach(s=>sum+=parseFloat(s.percentage));
+
+  let avg=(sum/students.length).toFixed(2);
+
+  document.getElementById("classAvg").innerText=avg+"%";
+}
+
+/* CLEAR */
+function clearFields(){
+  document.getElementById("name").value="";
+  document.getElementById("age").value="";
+  document.getElementById("math").value="";
+  document.getElementById("science").value="";
+  document.getElementById("english").value="";
+  document.getElementById("attendance").value="";
+}
+
+</script>
+</body>
+</html>
