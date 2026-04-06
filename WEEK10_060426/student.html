@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html ng-app="studentApp">
+<head>
+    <title>Advanced Student Record</title>
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f4f7fa;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+
+    <script>
+        var app = angular.module("studentApp", []);
+
+        app.controller("studentController", function($scope) {
+
+            // Load from local storage
+            $scope.students = JSON.parse(localStorage.getItem("students")) || [];
+
+            $scope.editIndex = -1;
+
+            // SAVE DATA
+            function saveData() {
+                localStorage.setItem("students", JSON.stringify($scope.students));
+            }
+
+            // ADD / UPDATE STUDENT
+            $scope.addStudent = function() {
+                if ($scope.studentForm.$valid) {
+
+                    if ($scope.editIndex === -1) {
+                        // Add new
+                        $scope.students.push({
+                            name: $scope.name,
+                            age: $scope.age,
+                            course: $scope.course
+                        });
+                    } else {
+                        // Update existing
+                        $scope.students[$scope.editIndex] = {
+                            name: $scope.name,
+                            age: $scope.age,
+                            course: $scope.course
+                        };
+                        $scope.editIndex = -1;
+                    }
+
+                    saveData();
+
+                    // Clear fields
+                    $scope.name = "";
+                    $scope.age = "";
+                    $scope.course = "";
+                }
+            };
+
+            // DELETE
+            $scope.deleteStudent = function(index) {
+                $scope.students.splice(index, 1);
+                saveData();
+            };
+
+            // EDIT
+            $scope.editStudent = function(index) {
+                var s = $scope.students[index];
+                $scope.name = s.name;
+                $scope.age = s.age;
+                $scope.course = s.course;
+                $scope.editIndex = index;
+            };
+
+        });
+    </script>
+</head>
+
+<body ng-controller="studentController">
+
+<div class="container">
+
+    <h2 class="text-center">🎓 Student Record System</h2>
+
+    <!-- SEARCH -->
+    <input type="text" class="form-control" ng-model="searchText" placeholder="Search student...">
+    <br>
+
+    <!-- FORM -->
+    <form name="studentForm">
+
+        <input type="text" class="form-control" name="name" ng-model="name"
+               placeholder="Enter Name" required ng-minlength="3">
+        <div class="error" ng-show="studentForm.name.$touched && studentForm.name.$invalid">
+            Name must be at least 3 characters
+        </div>
+
+        <input type="number" class="form-control" name="age" ng-model="age"
+               placeholder="Enter Age" required min="18">
+        <div class="error" ng-show="studentForm.age.$touched && studentForm.age.$invalid">
+            Age must be 18+
+        </div>
+
+        <input type="text" class="form-control" name="course" ng-model="course"
+               placeholder="Enter Course" required>
+
+        <br>
+
+        <button class="btn btn-success"
+                ng-click="addStudent()"
+                ng-disabled="studentForm.$invalid">
+            {{editIndex === -1 ? 'Add Student' : 'Update Student'}}
+        </button>
+
+    </form>
+
+    <!-- TABLE -->
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr ng-repeat="s in students | filter:searchText">
+            <td>{{s.name}}</td>
+            <td>{{s.age}}</td>
+            <td>{{s.course}}</td>
+            <td>
+                <button class="btn btn-warning btn-sm"
+                        ng-click="editStudent($index)">Edit</button>
+
+                <button class="btn btn-danger btn-sm"
+                        ng-click="deleteStudent($index)">Delete</button>
+            </td>
+        </tr>
+    </table>
+
+    <!-- TOTAL -->
+    <h4>Total Students: {{students.length}}</h4>
+
+</div>
+
+</body>
+</html>
