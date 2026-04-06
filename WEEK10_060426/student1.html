@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html ng-app="studentApp">
+<head>
+    <title>Advanced Student Registration</title>
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f4f7fa;
+        }
+        .container {
+            margin-top: 30px;
+            max-width: 600px;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+
+    <script>
+        var app = angular.module("studentApp", []);
+
+        app.controller("formController", function($scope) {
+
+            // Load saved data
+            $scope.students = JSON.parse(localStorage.getItem("students")) || [];
+
+            $scope.editIndex = -1;
+
+            function saveData() {
+                localStorage.setItem("students", JSON.stringify($scope.students));
+            }
+
+            // REGISTER / UPDATE
+            $scope.register = function() {
+                if ($scope.regForm.$valid && $scope.student.password === $scope.student.confirmPassword) {
+
+                    if ($scope.editIndex === -1) {
+                        $scope.students.push(angular.copy($scope.student));
+                    } else {
+                        $scope.students[$scope.editIndex] = angular.copy($scope.student);
+                        $scope.editIndex = -1;
+                    }
+
+                    saveData();
+
+                    $scope.student = {};
+                    $scope.regForm.$setPristine();
+                    $scope.regForm.$setUntouched();
+                }
+            };
+
+            // DELETE
+            $scope.deleteStudent = function(index) {
+                $scope.students.splice(index, 1);
+                saveData();
+            };
+
+            // EDIT
+            $scope.editStudent = function(index) {
+                $scope.student = angular.copy($scope.students[index]);
+                $scope.editIndex = index;
+            };
+
+            // RESET
+            $scope.resetForm = function() {
+                $scope.student = {};
+                $scope.editIndex = -1;
+                $scope.regForm.$setPristine();
+                $scope.regForm.$setUntouched();
+            };
+
+        });
+    </script>
+</head>
+
+<body ng-controller="formController">
+
+<div class="container">
+
+    <h2 class="text-center">🎓 Student Registration</h2>
+
+    <form name="regForm" ng-submit="register()" novalidate>
+
+        <input type="text" class="form-control" name="name"
+               ng-model="student.name" placeholder="Full Name"
+               required ng-minlength="3">
+        <div class="error" ng-show="regForm.name.$touched && regForm.name.$invalid">
+            Name must be at least 3 characters
+        </div>
+
+        <input type="email" class="form-control" name="email"
+               ng-model="student.email" placeholder="Email" required>
+        <div class="error" ng-show="regForm.email.$touched && regForm.email.$invalid">
+            Enter valid email
+        </div>
+
+        <input type="text" class="form-control" name="phone"
+               ng-model="student.phone" placeholder="Phone"
+               ng-pattern="/^[0-9]{10}$/" required>
+        <div class="error" ng-show="regForm.phone.$touched && regForm.phone.$invalid">
+            Enter 10-digit phone number
+        </div>
+
+        <input type="number" class="form-control" name="age"
+               ng-model="student.age" placeholder="Age"
+               min="18" required>
+        <div class="error" ng-show="regForm.age.$touched && regForm.age.$invalid">
+            Age must be 18+
+        </div>
+
+        <select class="form-control" name="course"
+                ng-model="student.course" required>
+            <option value="">Select Course</option>
+            <option>Computer Science</option>
+            <option>Engineering</option>
+            <option>Business</option>
+        </select>
+
+        <input type="password" class="form-control" name="password"
+               ng-model="student.password" placeholder="Password"
+               required ng-minlength="5">
+
+        <input type="password" class="form-control" name="confirmPassword"
+               ng-model="student.confirmPassword" placeholder="Confirm Password"
+               required>
+
+        <div class="error" ng-show="student.password !== student.confirmPassword">
+            Passwords do not match
+        </div>
+
+        <br>
+
+        <button class="btn btn-success"
+                type="submit"
+                ng-disabled="regForm.$invalid || student.password !== student.confirmPassword">
+            {{editIndex === -1 ? 'Register' : 'Update'}}
+        </button>
+
+        <button class="btn btn-default" type="button" ng-click="resetForm()">
+            Reset
+        </button>
+
+    </form>
+
+    <hr>
+
+    <!-- TABLE -->
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr ng-repeat="s in students">
+            <td>{{s.name}}</td>
+            <td>{{s.email}}</td>
+            <td>{{s.phone}}</td>
+            <td>{{s.age}}</td>
+            <td>{{s.course}}</td>
+            <td>
+                <button class="btn btn-warning btn-sm"
+                        ng-click="editStudent($index)">Edit</button>
+                <button class="btn btn-danger btn-sm"
+                        ng-click="deleteStudent($index)">Delete</button>
+            </td>
+        </tr>
+    </table>
+
+    <h4>Total Students: {{students.length}}</h4>
+
+</div>
+
+</body>
+</html>
